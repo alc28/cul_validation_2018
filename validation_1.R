@@ -30,7 +30,10 @@ names(validation_hld)[1] <- "hld_id"
 names(validation_hld)[2] <- "bib_id"
 names(validation_hld)[3] <- "f852"
 
-location_list <- c("afr","afr,ref","hote","hote,ref","ilr","ilr,ref","jgsm","law","law,ref","mann","mann,ref","math","math,ref","phys","mus","mus,ref","asia","asia,ref","ech","ech,ref","olin","olin,ref","sasa","sasa,ref","was","was,ref","orni","uris","uris,ref","vet")
+#location_list <- c("afr","afr,ref","hote","hote,ref","ilr","ilr,ref","jgsm","law","law,ref","mann","mann,ref","math","math,ref","phys","mus","mus,ref","asia","asia,ref","ech","ech,ref","olin","olin,ref","sasa","sasa,ref","was","was,ref","orni","uris","uris,ref","vet")
+
+location_list <- c("afr","hote","ilr","jgsm","law","mann","math","phys","mus","asia","ech","olin","sasa","was","orni","uris","vet")
+
 
 population <- validation_hld
 population <- population %>%
@@ -53,4 +56,5 @@ sum_sample6000 <- sample_6000 %>%
 
 df_joined <- left_join(sum_df, sum_sample6000, by = "location")
 
-write_csv(df_joined, path = "output/comparison_pop_sample.csv")
+write_csv(df_joined, path = "output/comparison_pop_sample_noref.csv")
+
