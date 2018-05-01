@@ -7,6 +7,7 @@ library(stringr)
 
 
 get_df_sample <- function(df, samplesize) {
+  df$rownumber <- seq.int(nrow(df))
   sample_increment <- as.integer(nrow(df)/ samplesize)
   keepers <- seq(1, nrow(df), sample_increment)
   keepers <- as.data.frame(keepers)
@@ -14,7 +15,6 @@ get_df_sample <- function(df, samplesize) {
   df_increment_select <- right_join(df, keepers, by = "rownumber")
   return(df_increment_select)
 }
-
 
 
 validation_bib <- read_delim("data/validation_rawdata.BIB.list", 
@@ -30,7 +30,6 @@ df_bib_monograph <- validation_bib %>%
   filter(c07 == "m") %>%
   select(bib_id)
 
-
 # import hld table and filter for only included locations
 
 
@@ -42,8 +41,8 @@ names(validation_hld)[1] <- "hld_id"
 names(validation_hld)[2] <- "bib_id"
 names(validation_hld)[3] <- "f852"
 
-validation_hld$rownumber <- seq.int(nrow(validation_hld))
-validation_hld <- validation_hld[c(4,1,2,3)]
+# validation_hld$rownumber <- seq.int(nrow(validation_hld))
+# validation_hld <- validation_hld[c(4,1,2,3)]
 
 #location_list <- c("afr","afr,ref","hote","hote,ref","ilr","ilr,ref","jgsm","law","law,ref","mann","mann,ref","math","math,ref","phys","mus","mus,ref","asia","asia,ref","ech","ech,ref","olin","olin,ref","sasa","sasa,ref","was","was,ref","orni","uris","uris,ref","vet")
 
@@ -54,15 +53,18 @@ population <- validation_hld %>%
   mutate(location = str_extract(f852, "\\$b(.+?)\\$") ) %>%
   mutate(location = str_sub(location, 3, -2))
 
-df <- population %>%
+population <- population %>%
   filter(location %in% location_list)
 
-sum_df <- df %>%
-  count(location, sort = TRUE) %>%
-  mutate(population_total = nrow(df), pct_of_total_population = round(n / population_total,4) * 100   )
+# join bib monograph list to filtered holdings
 
-sample_6000 <- df %>%
-  sample_n(6000, replace = FALSE)
+filtered_bib_holdings <- left_join(population, df_bib_monograph, by = "bib_id")
+
+sum_df <- filtered_bib_holdings %>%
+  count(location, sort = TRUE) %>%
+  mutate(population_total = nrow(filtered_bib_holdings), pct_of_total_population = round(n / population_total,4) * 100   )
+
+sample_6000 <- get_df_sample(filtered_bib_holdings, 6000)
 
 sum_sample6000 <- sample_6000 %>%
   count(location, sort = TRUE) %>%
@@ -71,19 +73,6 @@ sum_sample6000 <- sample_6000 %>%
 df_joined <- left_join(sum_df, sum_sample6000, by = "location")
 
 write_csv(df_joined, path = "output/comparison_pop_sample_noref.csv")
-
-
-###############
-
-# take every 6000th item in holdings table
-
-# sample_increment <- as.integer(nrow(validation_hld)/ 6000)
-# validation_hld$rownumber <- seq.int(nrow(validation_hld))
-# validation_hld <- validation_hld[c(4,1,2,3)]
-# keepers <- seq(1, nrow(validation_hld), sample_increment)
-# keepers <- as.data.frame(keepers)
-# names(keepers)[1] <- "rownumber"
-# df_increment_select <- right_join(validation_hld, keepers, by = "rownumber")
 
 
 
